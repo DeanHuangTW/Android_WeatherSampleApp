@@ -8,9 +8,11 @@ import org.xmlpull.v1.XmlPullParserFactory;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.TextView;
 
 public class MainActivity extends Activity {
@@ -19,6 +21,7 @@ public class MainActivity extends Activity {
 	private String data;
 	private TextView mWeatherData;
 	private Button mShow;
+	private EditText mEditTextCityName;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -26,26 +29,45 @@ public class MainActivity extends Activity {
 		setContentView(R.layout.activity_main);
 		
 		mWeatherData = (TextView) findViewById(R.id.textView1);
+		mEditTextCityName = (EditText) findViewById(R.id.edit_city_name);
+		
 		mShow = (Button) findViewById(R.id.button_show_data);
 		mShow.setOnClickListener(new OnClickListener() {
 			@Override
-			public void onClick(View v) {
-				mWeatherData.setText(data);				
+			public void onClick(View v) {				
+				Thread myThread = new Thread(runnable);
+				myThread.start();
+				try {
+					//使用join,等待資料處理完成再setText()
+					myThread.join();
+	            } catch (InterruptedException e) {
+	                e.printStackTrace();
+	            }
+				
+				mWeatherData.setText(data);
 			}
 			
 		});		
 		
-        new Thread(runnable).start();
-		
 	}
 	
 	final Runnable runnable = new Runnable() {
-        public void run() {
-        	//取得weather XML data
+    	InputStream xmlData;
+        public void run() {        	
         	WeatherManager WM = new WeatherManager();
-        	InputStream xmlData = WM.getWeathertData(WM.getCityAddress());
-        	// parse
-        	data = parseXml(xmlData);
+        	
+        	// 取得City name
+        	String cityName = mEditTextCityName.getText().toString();
+        	// 根據city name取得city code (XML format)
+        	xmlData = WM.getCityCodeXml(cityName);        	
+        	// parse XML
+        	String cityCode = parseCityCodeXml(xmlData);
+        	Log.v(TAG, cityName + ". city code is:" + cityCode);
+        	
+        	//根據city code取得weather XML data
+			xmlData =WM.getWeatherXml(cityCode);
+        	// parse XML
+        	data = parseWeatherXml(xmlData);
         }
     };
     
@@ -65,7 +87,7 @@ public class MainActivity extends Activity {
 </weatherdata> 
  
  */
-	private String parseXml(InputStream xmlData) {
+	private String parseWeatherXml(InputStream xmlData) {
 		String result = null;
 		try {
 			//設定XML parse
@@ -102,4 +124,37 @@ public class MainActivity extends Activity {
 		return result;
 	}
 
+	private String parseCityCodeXml(InputStream xmlData) {
+		String cityCode = null;
+		try {
+			//設定XML parse
+			XmlPullParserFactory factory = XmlPullParserFactory.newInstance();
+			XmlPullParser xmlparser = factory.newPullParser();
+			//把XML放到parse
+			xmlparser.setInput(xmlData,"utf-8");
+			//開始翻譯
+			String tagName;
+			int eventType = xmlparser.getEventType();
+			while (eventType != XmlPullParser.END_DOCUMENT) {
+			    switch (eventType) {			              
+			    	case XmlPullParser.START_TAG:
+			    		//取得tag,根據tag做不同的事
+			    		tagName = xmlparser.getName(); 
+			    		if (tagName.equals("weather")) {			    			
+			    			cityCode = xmlparser.getAttributeValue(null, "weatherlocationcode");
+			    		}
+			    		break;
+			    	default:
+			    		break;
+			    }
+			    eventType = xmlparser. next();
+			}
+		} catch (XmlPullParserException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}		
+		
+		return cityCode;
+	}
 }

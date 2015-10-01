@@ -12,17 +12,25 @@
         android:id="@+id/textView1"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
+        android:layout_alignLeft="@+id/edit_city_name"
         android:layout_alignParentRight="true"
+        android:layout_below="@+id/edit_city_name"
+        android:text="result" />
+
+    <EditText
+        android:id="@+id/edit_city_name"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:text="TextView" />
+        android:ems="10" />
 
     <Button
         android:id="@+id/button_show_data"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignLeft="@+id/textView1"
-        android:layout_below="@+id/textView1"
+        android:layout_centerVertical="true"
         android:text="Show" />
 
 </RelativeLayout>
