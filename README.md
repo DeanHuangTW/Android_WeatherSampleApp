@@ -9,4 +9,4 @@ Weather sample app
 
 
 Default screen <br />
-![github](https://github.com/DeanHuangTW/Android_WeatherSampleApp/blob/master/screenshot/screenshot.png "github")
+![github](https://github.com/DeanHuangTW/Android_WeatherSampleApp/blob/master/screenshot.png "github")
